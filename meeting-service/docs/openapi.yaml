@@ -1,0 +1,439 @@
+openapi: 3.1.0
+info:
+  title: 18Roots Meeting Service
+  version: 1.1.0
+  description: |
+    One-to-one doctor and patient video meetings. The main backend creates and
+    cancels meetings with a service token. The mobile app reads meetings, asks
+    for join tokens and ends calls with the signed-in person's token.
+
+    Login tokens are JWTs with `iss`, `aud`, `sub` (the user's ID in the main
+    backend), `role` (`doctor`, `patient` or `service`) and `exp`. They are
+    signed with HS256 and a shared secret, or RS256/ES256 and the main
+    backend's private key.
+servers:
+  - url: https://{host}
+    variables:
+      host:
+        default: roots18-meeting-api.onrender.com
+security:
+  - platformToken: []
+
+paths:
+  /api/v1/meetings:
+    post:
+      operationId: createMeeting
+      summary: Create a meeting for a confirmed appointment
+      description: |
+        Only roles listed in MEETING_CREATOR_ROLES may call this; in production
+        that is `service`. A doctor or patient may only create a meeting they
+        are part of. One active meeting is allowed per appointment reference.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMeetingRequest"
+      responses:
+        "201":
+          $ref: "#/components/responses/Meeting"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+        "429":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/meetings/{id}:
+    get:
+      operationId: getMeeting
+      summary: Read a meeting
+      description: Participants see their own meetings. The service role sees any meeting.
+      parameters:
+        - $ref: "#/components/parameters/MeetingId"
+      responses:
+        "200":
+          $ref: "#/components/responses/Meeting"
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/meetings/{id}/prepare:
+    post:
+      operationId: prepareMeeting
+      summary: Create the video room and mark the meeting ready
+      description: Safe to repeat. Fails with 409 if the meeting has ended or was cancelled.
+      parameters:
+        - $ref: "#/components/parameters/MeetingId"
+      responses:
+        "200":
+          $ref: "#/components/responses/Meeting"
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/meetings/{id}/join-token:
+    post:
+      operationId: createJoinToken
+      summary: Get a 10-minute token for this person to join this room
+      parameters:
+        - $ref: "#/components/parameters/MeetingId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role:
+                  $ref: "#/components/schemas/ParticipantRole"
+      responses:
+        "200":
+          description: Join credentials for the LiveKit client SDK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JoinCredentials"
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/meetings/{id}/end:
+    post:
+      operationId: endMeeting
+      summary: End the meeting for both people and remove the room
+      description: Participants or the service role. Safe to repeat. Leaving the call is not the same as ending it.
+      parameters:
+        - $ref: "#/components/parameters/MeetingId"
+      responses:
+        "202":
+          $ref: "#/components/responses/Meeting"
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/meetings/{id}/cancel:
+    post:
+      operationId: cancelMeeting
+      summary: Cancel the meeting (main backend only)
+      description: For a cancelled or refunded appointment. Safe to repeat. An ended meeting cannot be cancelled.
+      parameters:
+        - $ref: "#/components/parameters/MeetingId"
+      responses:
+        "200":
+          $ref: "#/components/responses/Meeting"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+
+  /api/v1/livekit/webhook:
+    post:
+      operationId: receiveLivekitWebhook
+      summary: LiveKit server events (called by LiveKit, not by apps)
+      security: []
+      description: The Authorization header is a JWT signed with the LiveKit API secret, carrying the body's SHA-256.
+      responses:
+        "200":
+          description: Duplicate event, already processed
+        "202":
+          description: Event stored and applied
+        "400":
+          description: Body is not a LiveKit event
+        "401":
+          description: Signature does not match
+
+  /health/live:
+    get:
+      operationId: healthLive
+      summary: The web process is running
+      security: []
+      responses:
+        "200":
+          description: Running
+  /health/ready:
+    get:
+      operationId: healthReady
+      summary: The database and Valkey answer
+      security: []
+      responses:
+        "200":
+          description: Ready
+        "503":
+          description: A dependency is down
+
+webhooks:
+  meetingEvent:
+    post:
+      summary: Event sent to the main backend's EVENTS_WEBHOOK_URL
+      description: |
+        Verify before trusting: X-Meeting-Signature is `t=<unix seconds>,v1=<hex>`,
+        where hex is HMAC-SHA256 of `<t>.<raw body>` with EVENTS_WEBHOOK_SECRET.
+        Reject timestamps more than 5 minutes old. Events can arrive more than once
+        and out of order: store `id` and ignore repeats, and read the meeting's
+        `status` rather than relying on order. Answer 2xx within 10 seconds;
+        anything else is retried for about a day.
+      parameters:
+        - in: header
+          name: X-Meeting-Signature
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: X-Meeting-Event-Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeetingEvent"
+      responses:
+        "200":
+          description: Received
+
+components:
+  securitySchemes:
+    platformToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    MeetingId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      description: 16 to 128 letters, digits, period, underscore, colon or hyphen. Same key and body returns the first response.
+      schema:
+        type: string
+        pattern: "^[A-Za-z0-9._:-]{16,128}$"
+
+  responses:
+    Meeting:
+      description: The meeting
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [meeting]
+            properties:
+              meeting:
+                $ref: "#/components/schemas/Meeting"
+    Error:
+      description: An error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    ParticipantRole:
+      type: string
+      enum: [doctor, patient]
+
+    CreateMeetingRequest:
+      type: object
+      required: [meeting]
+      properties:
+        meeting:
+          type: object
+          required: [external_appointment_reference, participants]
+          properties:
+            external_appointment_reference:
+              type: string
+              maxLength: 160
+            participants:
+              type: array
+              minItems: 2
+              maxItems: 2
+              description: Exactly one doctor and one patient.
+              items:
+                type: object
+                required: [role, external_user_reference]
+                properties:
+                  role:
+                    $ref: "#/components/schemas/ParticipantRole"
+                  external_user_reference:
+                    type: string
+                    maxLength: 160
+                  display_name:
+                    type: string
+                    maxLength: 120
+
+    Participant:
+      type: object
+      required: [id, role, external_user_reference, display_name, joined_at, left_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/ParticipantRole"
+        external_user_reference:
+          type: string
+        display_name:
+          type: [string, "null"]
+        joined_at:
+          type: [string, "null"]
+          format: date-time
+          description: First time this person joined the call.
+        left_at:
+          type: [string, "null"]
+          format: date-time
+          description: Last time this person left the call.
+
+    Meeting:
+      type: object
+      required: [id, external_appointment_reference, meeting_type, status, started_at, ended_at, participants]
+      properties:
+        id:
+          type: string
+          format: uuid
+        external_appointment_reference:
+          type: string
+        meeting_type:
+          type: string
+          enum: [one_to_one]
+        status:
+          type: string
+          enum: [scheduled, ready, in_progress, ended, cancelled, failed]
+        started_at:
+          type: [string, "null"]
+          format: date-time
+        ended_at:
+          type: [string, "null"]
+          format: date-time
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Participant"
+
+    JoinCredentials:
+      type: object
+      required: [token, server_url, participant, expires_in_seconds]
+      properties:
+        token:
+          type: string
+          description: LiveKit access token for this person and room only.
+        server_url:
+          type: string
+          description: The LiveKit address the app connects to (wss://...).
+        participant:
+          type: object
+          required: [id, identity, role]
+          properties:
+            id:
+              type: string
+              format: uuid
+            identity:
+              type: string
+            role:
+              $ref: "#/components/schemas/ParticipantRole"
+        expires_in_seconds:
+          type: integer
+          example: 600
+
+    MeetingEvent:
+      type: object
+      required: [id, type, occurred_at, data]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique per event. The same ID is resent on retries.
+        type:
+          type: string
+          enum:
+            - meeting.created
+            - meeting.started
+            - meeting.ended
+            - meeting.cancelled
+            - participant.joined
+            - participant.left
+        occurred_at:
+          type: string
+          format: date-time
+        data:
+          type: object
+          required: [meeting]
+          properties:
+            meeting:
+              $ref: "#/components/schemas/Meeting"
+            ended_by:
+              type: string
+              enum: [doctor, patient, service, room_closed]
+              description: Only on meeting.ended. room_closed means LiveKit closed the room, usually after it stayed empty.
+            participant:
+              type: object
+              description: Only on participant.joined and participant.left.
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                role:
+                  $ref: "#/components/schemas/ParticipantRole"
+                external_user_reference:
+                  type: string
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                - invalid_request
+                - unauthorized
+                - forbidden
+                - not_found
+                - conflict
+                - invalid_state
+                - idempotency_key_required
+                - idempotency_conflict
+                - validation_failed
+                - rate_limited
+                - video_provider_unavailable
+            message:
+              type: string
+            details:
+              type: object

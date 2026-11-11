@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "18Roots Meeting Test",
+    "slug": "18roots-meeting-test",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": [
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Camera is used for the doctor-patient video consultation.",
+        "NSMicrophoneUsageDescription": "Microphone is used for the doctor-patient video consultation."
+      }
+    },
+    "android": {
+      "permissions": ["CAMERA", "RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS", "BLUETOOTH"],
+      "package": "org.roots18.meetingtest"
+    }
+  }
+}
+

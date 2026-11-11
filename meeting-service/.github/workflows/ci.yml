@@ -1,0 +1,82 @@
+# Runs when this folder is the root of a GitHub repository.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: meeting
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: meeting_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U meeting -d meeting_test"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+      valkey:
+        image: valkey/valkey:8.1.11-alpine
+        ports: ["6379:6379"]
+    defaults:
+      run:
+        working-directory: api
+    env:
+      RAILS_ENV: test
+      CI: "true"
+      DATABASE_URL: postgresql://meeting:ci-only-password@localhost:5432/meeting_test
+      REDIS_URL: redis://localhost:6379/0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          working-directory: api
+          bundler-cache: true
+      - name: Prepare the test database
+        run: bin/rails db:prepare
+      - name: Run the tests
+        run: bundle exec rspec
+      - name: Production starts with production settings
+        env:
+          RAILS_ENV: production
+          SECRET_KEY_BASE: ci-only-secret-key-base-0123456789abcdef
+          PLATFORM_JWT_SECRET: ci-only-platform-secret-0123456789abcdef
+          PLATFORM_JWT_ISSUER: 18roots-main-app
+          PLATFORM_JWT_AUDIENCE: 18roots-meeting-service
+          LIVEKIT_API_KEY: ci-key
+          LIVEKIT_API_SECRET: ci-secret
+          LIVEKIT_API_URL: http://localhost:7880
+          LIVEKIT_PUBLIC_URL: ws://localhost:7880
+          ALLOW_DEMO_AUTH: "false"
+        run: |
+          bin/rails runner 'puts "booted with eager_load=#{Rails.application.config.eager_load}"'
+
+  api-image:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the API image from the lockfile
+        run: docker build --tag meeting-api:ci api
+
+  mobile-typecheck:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck

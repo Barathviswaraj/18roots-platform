@@ -1,0 +1,9 @@
+.git
+.env
+**/node_modules
+**/.expo
+**/log
+**/tmp
+**/coverage
+**/vendor/bundle
+

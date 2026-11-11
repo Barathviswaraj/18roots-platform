@@ -1,0 +1,130 @@
+# The whole meeting service on one Linux server, using only open-source software.
+# deploy/deploy.sh creates the .env file this reads.
+name: roots18-meeting-server
+
+x-app-env: &app-env
+  RAILS_ENV: production
+  PORT: "3000"
+  SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Run deploy/deploy.sh to create .env}
+  DATABASE_URL: postgresql://meeting:${POSTGRES_PASSWORD:?}@postgres:5432/meeting_production
+  REDIS_URL: redis://valkey:6379/0
+  PLATFORM_JWT_SECRET: ${PLATFORM_JWT_SECRET:?}
+  PLATFORM_JWT_ISSUER: 18roots-main-app
+  PLATFORM_JWT_AUDIENCE: 18roots-meeting-service
+  LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:?}
+  LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:?}
+  LIVEKIT_API_URL: http://livekit:7880
+  LIVEKIT_PUBLIC_URL: wss://${LIVEKIT_DOMAIN:?}
+  ALLOW_DEMO_AUTH: "false"
+  # Test only: lets the test APK's doctor create meetings. With a main backend,
+  # set this to "service" so only the backend creates and cancels meetings.
+  MEETING_CREATOR_ROLES: ${MEETING_CREATOR_ROLES:-service,doctor}
+  # Optional: where meeting events are sent once the main backend exists.
+  EVENTS_WEBHOOK_URL: ${EVENTS_WEBHOOK_URL:-}
+  EVENTS_WEBHOOK_SECRET: ${EVENTS_WEBHOOK_SECRET:-}
+  # Caddy terminates HTTPS, so Rails only ever sees plain HTTP from inside Docker.
+  FORCE_SSL: "true"
+  ASSUME_SSL: "true"
+
+services:
+  caddy:
+    image: caddy:2.11.9-alpine
+    restart: unless-stopped
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?}
+      LIVEKIT_DOMAIN: ${LIVEKIT_DOMAIN:?}
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      livekit:
+        condition: service_started
+
+  livekit:
+    image: livekit/livekit-server:v1.13.9
+    restart: unless-stopped
+    command: ["--bind", "0.0.0.0", "--node-ip", "${PUBLIC_IP:?}"]
+    environment:
+      LIVEKIT_CONFIG: |
+        port: 7880
+        rtc:
+          tcp_port: 7881
+          udp_port: 7882
+          use_external_ip: false
+        keys:
+          ${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}
+        webhook:
+          api_key: ${LIVEKIT_API_KEY}
+          urls:
+            - http://api:3000/api/v1/livekit/webhook
+    ports:
+      - "7881:7881/tcp"
+      - "7882:7882/udp"
+
+  api:
+    build:
+      context: ../api
+    restart: unless-stopped
+    command: ["sh", "-c", "bin/rails db:prepare && exec bundle exec puma -C config/puma.rb"]
+    environment: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "ruby", "-rnet/http", "-e", "exit(Net::HTTP.get_response(URI('http://127.0.0.1:3000/health/ready')).is_a?(Net::HTTPSuccess) ? 0 : 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  sidekiq:
+    build:
+      context: ../api
+    restart: unless-stopped
+    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
+    environment: *app-env
+    depends_on:
+      api:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: meeting_production
+      POSTGRES_USER: meeting
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meeting -d meeting_production"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  valkey:
+    # BSD-licensed and Redis-compatible. Redis 7.4 is not open source.
+    image: valkey/valkey:8.1.11-alpine
+    restart: unless-stopped
+    command: ["valkey-server", "--appendonly", "yes"]
+    volumes:
+      - valkey-data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  caddy-data:
+  caddy-config:
+  postgres-data:
+  valkey-data:

@@ -1,0 +1,31 @@
+{
+  "id": "f7106d47-e5bd-4b87-8649-c8327c7372db",
+  "status": "confirmed",
+  "consultation": {
+    "id": "f7106d47-e5bd-4b87-8649-c8327c7372db",
+    "status": "confirmed",
+    "startsAt": "2026-11-13T03:30:00.000Z",
+    "endsAt": "2026-11-13T04:00:00.000Z",
+    "joinOpensAt": "2026-11-13T03:15:00.000Z",
+    "mode": "video",
+    "doctor": {
+      "id": "3192aaca-1f0d-4801-bc11-36a98b39b057",
+      "name": "Dr. Test Doctor",
+      "title": "Siddha Physician",
+      "photoUrl": null
+    },
+    "reason": "Check-up",
+    "meetingId": null,
+    "canCancel": true,
+    "cancellationPolicy": "Free cancellation up to 6 hours before the start.",
+    "followUp": []
+  },
+  "payment": {
+    "id": "1379ed85-c9ad-49c9-ac51-b7fba5171813",
+    "amount": 600,
+    "currency": "INR",
+    "status": "paid",
+    "provider": "demo",
+    "checkoutUrl": null
+  }
+}

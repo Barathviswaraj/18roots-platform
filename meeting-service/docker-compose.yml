@@ -1,0 +1,112 @@
+name: ${COMPOSE_PROJECT_NAME:-18roots-meeting}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-meeting_development}
+      POSTGRES_USER: ${POSTGRES_USER:-meeting}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-only-change-me}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    # Valkey: BSD-licensed and Redis-compatible. Redis 7.4 is not open source.
+    image: valkey/valkey:8.1.11-alpine
+    command: ["valkey-server", "--appendonly", "yes"]
+    volumes:
+      - valkey-data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  livekit:
+    image: livekit/livekit-server:v1.13.9
+    command: ["--dev", "--bind", "0.0.0.0", "--node-ip", "${LIVEKIT_NODE_IP:-127.0.0.1}"]
+    environment:
+      LIVEKIT_CONFIG: |
+        port: 7880
+        rtc:
+          tcp_port: 7881
+          udp_port: 7882
+          use_external_ip: false
+        keys:
+          ${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-secret}
+        webhook:
+          api_key: ${LIVEKIT_API_KEY:-devkey}
+          urls:
+            - ${LIVEKIT_WEBHOOK_URL:-http://api:3000/api/v1/livekit/webhook}
+    ports:
+      - "7880:7880/tcp"
+      - "7881:7881/tcp"
+      - "7882:7882/udp"
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    command: ["sh", "-lc", "bin/rails db:prepare && bin/rails server -b 0.0.0.0 -p 3000"]
+    env_file:
+      - .env
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: ${DATABASE_URL:-postgresql://meeting:local-only-change-me@postgres:5432/meeting_development}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      LIVEKIT_API_URL: http://livekit:7880
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      livekit:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "ruby", "-rnet/http", "-e", "exit(Net::HTTP.get_response(URI('http://127.0.0.1:3000/health/ready')).is_a?(Net::HTTPSuccess) ? 0 : 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  sidekiq:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
+    env_file:
+      - .env
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: ${DATABASE_URL:-postgresql://meeting:local-only-change-me@postgres:5432/meeting_development}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      LIVEKIT_API_URL: http://livekit:7880
+    volumes:
+      - ./api:/app
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  valkey-data:
+

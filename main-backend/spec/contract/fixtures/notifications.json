@@ -1,0 +1,20 @@
+{
+  "notifications": [
+    {
+      "id": "e00c8be2-fef4-4788-a867-698d9f766c12",
+      "title": "Your doctor shared a note",
+      "body": "Dr. Meera Krishnan added guidance to your care plan.",
+      "createdAt": "2026-11-11T06:38:34.234Z",
+      "read": true,
+      "link": "/care"
+    },
+    {
+      "id": "e5c131a3-52e4-4b52-aa9c-debb1d47d28f",
+      "title": "Order out for delivery",
+      "body": "Order #180524 will arrive today.",
+      "createdAt": "2026-11-11T06:38:34.233Z",
+      "read": false,
+      "link": "/orders/025b8c00-9a53-4078-9906-09839e7d6c9f"
+    }
+  ]
+}

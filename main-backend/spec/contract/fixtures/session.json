@@ -1,0 +1,15 @@
+{
+  "accessToken": "eyJraWQiOiI0eVpJd3RLZnJpZUFERWV1IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiI1MjZmOTM5Yy0yMDJhLTQ2ZDktYTRkZS03NDdlYjkwMWFjYTAiLCJyb2xlIjoicGF0aWVudCIsInNpZCI6ImYxZTI5ZGJiLWMzMGItNDY2ZS05MThmLWU5NzA3ODk2NTk2MSIsImF1ZCI6WyIxOHJvb3RzLW1haW4tYmFja2VuZCIsIjE4cm9vdHMtbWVldGluZy1zZXJ2aWNlIl0sImV4cCI6MTc5NDM4MDAxMiwiaXNzIjoiMThyb290cy1tYWluLWFwcCIsImlhdCI6MTc5NDM3OTExMiwianRpIjoiZGVmMzBjYTYtNDVmMS00MWFlLTlhN2QtNTM5NjkwNWRmY2Y1In0.X_e2xYf3mP9r_S-pMZ84nwa7tVy0Tm1p6NaOjnvCg4lSwhoWVl5-WvCIcAZ835y_nN7mPKWmf9KME1SIunMtSLqXfFuEtbA_3mmp1Sx-ubTlpKOxTLxgkcTA6JlLiB3MBIz8gOG9pSL4V9XklgWD8-kzGZCnlFA4J27QV_iU4AsaR2fxLJ5TF2gP9AiX0mAPDvf9s9L1V7BlWJFMHt6Ab7IKOCCMzvmkRc0kWOj7aI28YNpdQC6Ss-MF4WaqPpyyKPaoGLknnWg9PLjGfIhCmxeJEx6e3dmU5z9iQtdhqe4VQDRjtcQQWCSFxJXNEUx8AijZbHkT8KdSYp-TUWAwGQ",
+  "refreshToken": "SJpnHfd39Jsxeq9vaYKop1h6Ab5voQW-Bch6W72pyRMabFoPvKIIl-n0e2Z6ajzN",
+  "expiresAt": "2026-11-11T06:53:32.051Z",
+  "user": {
+    "id": "526f939c-202a-46d9-a4de-747eb901aca0",
+    "name": "",
+    "phone": "+919876511111",
+    "email": null,
+    "dateOfBirth": null,
+    "city": null,
+    "avatarUrl": null,
+    "programName": null
+  }
+}

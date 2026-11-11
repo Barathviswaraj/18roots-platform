@@ -1,0 +1,9 @@
+.env
+.env.*
+!.env.example
+/log/*
+/tmp/*
+/storage/*
+.bundle/
+vendor/bundle/
+*.pem

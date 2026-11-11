@@ -1,0 +1,22 @@
+# Secrets and machine settings
+.env
+.env.*
+!.env.example
+*.env
+*.pem
+*.local.txt
+.hosted-test-secret
+
+# Generated
+node_modules/
+.expo/
+android/
+ios/
+dist/
+*.apk
+*.aab
+**/log/*
+**/tmp/*
+**/storage/*
+.bundle/
+vendor/bundle/

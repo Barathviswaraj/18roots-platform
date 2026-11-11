@@ -1,0 +1,31 @@
+{
+  "id": "768d7be7-f86b-40f3-b03e-b62f4d1baaa6",
+  "name": "Dr. Meera Krishnan",
+  "title": "Siddha Physician",
+  "photoUrl": null,
+  "verified": true,
+  "registrationNumber": "TNSIDDHA-04821",
+  "qualifications": [
+    "BSMS",
+    "MD (Siddha)"
+  ],
+  "experienceYears": 11,
+  "languages": [
+    "Tamil",
+    "English"
+  ],
+  "specialties": [
+    "PCOD",
+    "Menstrual health",
+    "Women's wellness"
+  ],
+  "fee": {
+    "amount": 600,
+    "currency": "INR"
+  },
+  "consultationMinutes": 30,
+  "rating": 4.9,
+  "about": "Focuses on PCOD and menstrual health through Siddha medicine, diet and daily routine.",
+  "cancellationPolicy": "Free cancellation up to 6 hours before the start. After that, half the fee is refunded. Missed consultations are not refunded.",
+  "nextAvailableAt": "2026-11-11T10:30:00.000Z"
+}

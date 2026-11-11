@@ -1,0 +1,9 @@
+#!/bin/sh
+# Starts the backend on Render. Render's free plan has no background workers,
+# so Sidekiq runs beside Puma in this one container.
+set -e
+
+bin/rails db:ensure_schema
+bin/rails db:prepare
+bundle exec sidekiq -c 2 -C config/sidekiq.yml &
+exec bundle exec puma -C config/puma.rb

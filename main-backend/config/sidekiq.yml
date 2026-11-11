@@ -1,0 +1,6 @@
+:concurrency: 5
+# Prefixed so this backend can share one Valkey with the meeting service, whose
+# Sidekiq listens on "critical" and "default".
+:queues:
+  - backend_critical
+  - backend_default

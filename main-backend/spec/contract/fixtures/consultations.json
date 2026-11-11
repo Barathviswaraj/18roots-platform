@@ -1,0 +1,30 @@
+{
+  "consultations": [
+    {
+      "id": "c80bb868-6c76-4b2a-8a76-1b789bad241e",
+      "status": "completed",
+      "startsAt": "2026-10-28T05:00:00.000Z",
+      "endsAt": "2026-10-28T05:30:00.000Z",
+      "joinOpensAt": "2026-10-28T04:45:00.000Z",
+      "mode": "video",
+      "doctor": {
+        "id": "32666524-9e42-4674-b47c-ded2ac60eae8",
+        "name": "Dr. Meera Krishnan",
+        "title": "Siddha Physician",
+        "photoUrl": null
+      },
+      "reason": "Irregular cycles",
+      "meetingId": null,
+      "canCancel": false,
+      "cancellationPolicy": "Free cancellation up to 6 hours before the start. After that, half the fee is refunded. Missed consultations are not refunded.",
+      "followUp": [
+        {
+          "id": "147530a2-32fc-4b4a-a879-80685b530dbc",
+          "title": "Daily routine",
+          "body": "Eat breakfast before 9 AM and keep meal times regular. Walk for 30 minutes daily and sleep by 10:30 PM.",
+          "sharedAt": "2026-10-28T05:45:00.000Z"
+        }
+      ]
+    }
+  ]
+}

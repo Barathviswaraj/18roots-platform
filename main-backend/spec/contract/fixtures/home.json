@@ -1,0 +1,125 @@
+{
+  "user": {
+    "name": "Anika",
+    "avatarUrl": null
+  },
+  "message": "A more balanced you is a journey, and you're doing so well",
+  "unreadNotifications": 1,
+  "sections": [
+    {
+      "type": "care_journey",
+      "id": "care-journey",
+      "data": {
+        "programName": "PCOD Care Journey",
+        "week": 6,
+        "totalWeeks": 12,
+        "progressPercent": 42,
+        "milestones": [
+          {
+            "id": "herbal",
+            "label": "Herbal care on track",
+            "state": "done"
+          },
+          {
+            "id": "lifestyle",
+            "label": "Lifestyle goals in progress",
+            "state": "in_progress"
+          },
+          {
+            "id": "consultation",
+            "label": "Book your next consultation",
+            "state": "upcoming"
+          }
+        ]
+      }
+    },
+    {
+      "type": "upcoming_consultation",
+      "id": "next-consultation",
+      "data": {
+        "consultation": null
+      }
+    },
+    {
+      "type": "medicine_reminder",
+      "id": "medicine",
+      "data": {
+        "dose": {
+          "id": "d3264951-d4ca-4629-bf38-e912107f7588",
+          "medicine": "Karisalankanni Churnam",
+          "instruction": "1 capsule after breakfast",
+          "slot": "morning",
+          "time": "08:30",
+          "takenAt": null
+        },
+        "remaining": 3
+      }
+    },
+    {
+      "type": "order_tracking",
+      "id": "order",
+      "data": {
+        "order": {
+          "id": "a39fa592-c577-4146-a2db-c3e7172d63b4",
+          "number": "180524",
+          "status": "out_for_delivery",
+          "placedAt": "2026-11-09T06:38:33.391Z",
+          "expectedAt": "2026-11-11T13:30:00.000Z",
+          "deliveredAt": null,
+          "items": [
+            {
+              "id": "abf36ccd-5c57-4473-8c77-16d8e93ecf80",
+              "name": "Karisalankanni Churnam, 100 g",
+              "quantity": 1,
+              "unitPrice": 240
+            },
+            {
+              "id": "820e1da3-6e01-4eac-abca-aa68791a2e3e",
+              "name": "Kumari Lehyam, 200 g",
+              "quantity": 1,
+              "unitPrice": 320
+            },
+            {
+              "id": "acdac8c7-2ed6-4bfb-96f0-b4eedd1eb843",
+              "name": "Sathavari Lehyam, 200 g",
+              "quantity": 1,
+              "unitPrice": 360
+            }
+          ],
+          "total": 920,
+          "currency": "INR",
+          "address": {
+            "name": "Anika Raghavan",
+            "line1": "12, Lotus Street, Anna Nagar",
+            "line2": null,
+            "city": "Chennai",
+            "pincode": "600040"
+          },
+          "paymentMethod": "UPI",
+          "timeline": [
+            {
+              "status": "placed",
+              "at": "2026-11-09T06:38:33.413Z"
+            },
+            {
+              "status": "packed",
+              "at": "2026-11-09T11:38:33.413Z"
+            },
+            {
+              "status": "shipped",
+              "at": "2026-11-10T06:38:33.413Z"
+            },
+            {
+              "status": "out_for_delivery",
+              "at": "2026-11-11T04:38:33.413Z"
+            },
+            {
+              "status": "delivered",
+              "at": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

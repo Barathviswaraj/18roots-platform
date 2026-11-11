@@ -1,0 +1,141 @@
+# 18Roots on Render's free plan: the meeting service and the main backend.
+# A free workspace allows one PostgreSQL database and one Key Value instance,
+# so both services share them: each uses its own database schema (DB_SCHEMA),
+# and the main backend's job queues are prefixed "backend_". Video runs on
+# LiveKit Cloud, because Render forwards only one HTTP port per service.
+#
+# Values marked "sync: false" are asked for when you create the Blueprint.
+# render-deploy/make-secrets.js creates the key pair and shared secret.
+
+services:
+  - type: web
+    name: roots18-meeting-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./meeting-service/api/Dockerfile
+    dockerContext: ./meeting-service/api
+    dockerCommand: sh bin/render-start
+    healthCheckPath: /health/ready
+    buildFilter:
+      paths:
+        - meeting-service/api/**
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: roots18-db
+          property: connectionString
+      - key: DB_SCHEMA
+        value: meeting
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: roots18-queue
+          property: connectionString
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      # The main backend's public key: login tokens are checked, never created, here.
+      - key: PLATFORM_JWT_PUBLIC_KEY
+        sync: false
+      - key: PLATFORM_JWT_ISSUER
+        value: 18roots-main-app
+      - key: PLATFORM_JWT_AUDIENCE
+        value: 18roots-meeting-service
+      # Only the main backend creates and cancels meetings.
+      - key: MEETING_CREATOR_ROLES
+        value: service
+      # https://<main backend address>/webhooks/meetings
+      - key: EVENTS_WEBHOOK_URL
+        sync: false
+      - key: EVENTS_WEBHOOK_SECRET
+        sync: false
+      - key: LIVEKIT_API_URL
+        sync: false
+      - key: LIVEKIT_PUBLIC_URL
+        sync: false
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
+        sync: false
+      - key: ALLOW_DEMO_AUTH
+        value: "false"
+      - key: FORCE_SSL
+        value: "true"
+      - key: ASSUME_SSL
+        value: "true"
+      - key: WEB_CONCURRENCY
+        value: "0"
+      - key: RAILS_MAX_THREADS
+        value: "3"
+
+  - type: web
+    name: roots18-main-backend
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./main-backend/Dockerfile
+    dockerContext: ./main-backend
+    dockerCommand: sh bin/render-start
+    healthCheckPath: /health/ready
+    buildFilter:
+      paths:
+        - main-backend/**
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: roots18-db
+          property: connectionString
+      - key: DB_SCHEMA
+        value: backend
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: roots18-queue
+          property: connectionString
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: JWT_PRIVATE_KEY
+        sync: false
+      # https://<meeting service address>
+      - key: MEETING_SERVICE_URL
+        sync: false
+      # The same value as the meeting service's EVENTS_WEBHOOK_SECRET.
+      - key: MEETING_EVENTS_SECRET
+        sync: false
+      - key: PAYMENT_PROVIDER
+        value: demo
+      # Test server only. Remove these and SEED_DEMO_DATA and JOIN_OPENS_MINUTES_BEFORE before real patients.
+      - key: DEMO_PAYMENTS
+        value: "true"
+      - key: ALLOW_DEMO_PAYMENTS_IN_PRODUCTION
+        value: "true"
+      - key: OTP_FIXED_CODE
+        value: "123456"
+      - key: ALLOW_TEST_LOGIN_IN_PRODUCTION
+        value: "true"
+      - key: SEED_DEMO_DATA
+        value: "true"
+      # Join opens a day early so a booked call can be tried at once (normally 15).
+      - key: JOIN_OPENS_MINUTES_BEFORE
+        value: "1440"
+      - key: FORCE_SSL
+        value: "true"
+      - key: ASSUME_SSL
+        value: "true"
+      - key: WEB_CONCURRENCY
+        value: "0"
+      - key: RAILS_MAX_THREADS
+        value: "3"
+
+  - type: keyvalue
+    name: roots18-queue
+    plan: free
+    region: singapore
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+databases:
+  - name: roots18-db
+    plan: free
+    region: singapore
+    ipAllowList: []

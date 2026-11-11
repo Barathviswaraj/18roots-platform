@@ -1,0 +1,136 @@
+{
+  "plan": {
+    "id": "5532a301-e3c5-4fe4-84f2-a2e130de5f1f",
+    "programName": "PCOD Care Journey",
+    "week": 6,
+    "totalWeeks": 12,
+    "progressPercent": 42,
+    "doctor": {
+      "id": "b48b8eca-1244-49c8-8ae5-c569513bd125",
+      "name": "Dr. Meera Krishnan",
+      "title": "Siddha Physician",
+      "photoUrl": null
+    },
+    "nextReviewAt": null,
+    "milestones": [
+      {
+        "id": "herbal",
+        "label": "Herbal care on track",
+        "state": "done"
+      },
+      {
+        "id": "lifestyle",
+        "label": "Lifestyle goals in progress",
+        "state": "in_progress"
+      },
+      {
+        "id": "consultation",
+        "label": "Book your next consultation",
+        "state": "upcoming"
+      }
+    ],
+    "doses": [
+      {
+        "id": "1061f4f1-7a17-44ed-9295-ae82002d1cc4",
+        "medicine": "Karisalankanni Churnam",
+        "instruction": "1 capsule after breakfast",
+        "slot": "morning",
+        "time": "08:30",
+        "takenAt": null
+      },
+      {
+        "id": "14acd015-d2a4-42e8-8f67-1c3eec84f1a0",
+        "medicine": "Kumari Lehyam",
+        "instruction": "1 teaspoon before lunch",
+        "slot": "afternoon",
+        "time": "12:30",
+        "takenAt": null
+      },
+      {
+        "id": "5cfa9ad4-555a-480b-98de-6c62b925e5dd",
+        "medicine": "Sathavari Lehyam",
+        "instruction": "1 teaspoon with warm milk",
+        "slot": "night",
+        "time": "21:00",
+        "takenAt": null
+      }
+    ],
+    "goals": [
+      {
+        "id": "9391e5f4-79ab-4784-8d01-b630a1f732dd",
+        "title": "Walk for 30 minutes",
+        "detail": "Morning or evening, at an easy pace",
+        "done": false
+      },
+      {
+        "id": "971b8021-a23f-470b-a9e8-9030a2055867",
+        "title": "Warm water on waking",
+        "detail": null,
+        "done": false
+      },
+      {
+        "id": "194b1f8c-f315-48b8-bcc1-52fff2ea9d3f",
+        "title": "Baddha Konasana, 10 minutes",
+        "detail": "Bound angle pose with slow breathing",
+        "done": false
+      },
+      {
+        "id": "2861ffb1-7855-4524-adc4-94eed5106ef7",
+        "title": "No refined sugar today",
+        "detail": null,
+        "done": false
+      },
+      {
+        "id": "4fcc34a6-7de5-43b0-8c22-a264c1da68c7",
+        "title": "Sleep by 10:30 PM",
+        "detail": null,
+        "done": false
+      }
+    ],
+    "weekAdherence": [
+      {
+        "date": "2026-11-04T18:30:00.000Z",
+        "taken": 3,
+        "total": 3
+      },
+      {
+        "date": "2026-11-05T18:30:00.000Z",
+        "taken": 2,
+        "total": 3
+      },
+      {
+        "date": "2026-11-06T18:30:00.000Z",
+        "taken": 2,
+        "total": 3
+      },
+      {
+        "date": "2026-11-07T18:30:00.000Z",
+        "taken": 2,
+        "total": 3
+      },
+      {
+        "date": "2026-11-08T18:30:00.000Z",
+        "taken": 3,
+        "total": 3
+      },
+      {
+        "date": "2026-11-09T18:30:00.000Z",
+        "taken": 3,
+        "total": 3
+      },
+      {
+        "date": "2026-11-10T18:30:00.000Z",
+        "taken": 0,
+        "total": 3
+      }
+    ],
+    "notes": [
+      {
+        "id": "ec1e2454-1ca7-4576-afbc-27af54f75156",
+        "title": "Daily routine",
+        "body": "Eat breakfast before 9 AM and keep meal times regular. Walk for 30 minutes daily and sleep by 10:30 PM.",
+        "sharedAt": "2026-10-28T05:45:00.000Z"
+      }
+    ]
+  }
+}

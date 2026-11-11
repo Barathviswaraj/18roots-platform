@@ -1,0 +1,12 @@
+#!/bin/sh
+# Starts the backend on Render. Render's free plan has no background workers or
+# shell, so Sidekiq runs beside Puma and demo data loads here when asked.
+set -e
+
+bin/rails db:ensure_schema
+bin/rails db:prepare
+if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
+  bin/rails db:seed
+fi
+bundle exec sidekiq -c 2 -C config/sidekiq.yml &
+exec bundle exec puma -C config/puma.rb

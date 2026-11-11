@@ -1,0 +1,15 @@
+.git
+.bundle
+log
+tmp
+storage
+vendor/bundle
+# Never bake secrets into an image: images are pushed to Docker Hub.
+.env
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+.hosted-test-secret
+

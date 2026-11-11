@@ -1,0 +1,76 @@
+# To deploy the meeting service and the main backend together, use
+# render-deploy/render.yaml instead (see render-deploy/DEPLOY-GITHUB.md, or
+# DEPLOY.md for the Docker Hub way without GitHub): a free Render
+# workspace allows only one database, so the two must share it.
+#
+# Backend on Render's free plan: Rails API, Sidekiq, Postgres and Valkey.
+# LiveKit is not here: Render exposes one public HTTP port per service, and video
+# calls also need media ports. Point the LIVEKIT_* values at a LiveKit server
+# that phones can reach, such as LiveKit Cloud or your own.
+#
+# Free-plan limits: the API sleeps after 15 idle minutes (about a minute to wake),
+# and the free database expires 30 days after it is created.
+services:
+  - type: web
+    name: roots18-meeting-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    dockerCommand: sh bin/render-start
+    healthCheckPath: /health/ready
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: roots18-meeting-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: roots18-meeting-queue
+          property: connectionString
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: PLATFORM_JWT_SECRET
+        sync: false
+      - key: LIVEKIT_API_URL
+        sync: false
+      - key: LIVEKIT_PUBLIC_URL
+        sync: false
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
+        sync: false
+      - key: PLATFORM_JWT_ISSUER
+        value: 18roots-main-app
+      - key: PLATFORM_JWT_AUDIENCE
+        value: 18roots-meeting-service
+      - key: ALLOW_DEMO_AUTH
+        value: "false"
+      # Test only: lets the test APK's doctor create meetings. Once the main
+      # backend exists, change this to "service" and add EVENTS_WEBHOOK_URL and
+      # EVENTS_WEBHOOK_SECRET in the Render dashboard.
+      - key: MEETING_CREATOR_ROLES
+        value: service,doctor
+      - key: FORCE_SSL
+        value: "true"
+      - key: ASSUME_SSL
+        value: "true"
+      - key: WEB_CONCURRENCY
+        value: "0"
+      - key: RAILS_MAX_THREADS
+        value: "3"
+
+  - type: keyvalue
+    name: roots18-meeting-queue
+    plan: free
+    region: singapore
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+databases:
+  - name: roots18-meeting-db
+    plan: free
+    region: singapore
+    ipAllowList: []

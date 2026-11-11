@@ -1,0 +1,8 @@
+# Caddy gets and renews the HTTPS certificates automatically.
+{$API_DOMAIN} {
+	reverse_proxy api:3000
+}
+
+{$LIVEKIT_DOMAIN} {
+	reverse_proxy livekit:7880
+}
