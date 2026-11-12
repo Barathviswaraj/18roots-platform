@@ -14,6 +14,9 @@ export const userSchema = z.object({
   city: z.string().nullable(),
   avatarUrl: z.string().nullable(),
   programName: z.string().nullable(),
+  // Older deployments do not include role yet; treat those accounts as patients
+  // until the backend migration is deployed.
+  role: z.enum(["patient", "doctor", "admin"]).default("patient"),
 });
 
 export const sessionSchema = z.object({

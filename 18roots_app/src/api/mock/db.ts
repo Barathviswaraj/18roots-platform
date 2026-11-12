@@ -217,6 +217,7 @@ export function createDb(now = new Date()): MockDb {
     city: "Chennai",
     avatarUrl: null,
     programName: "PCOD Care Journey",
+    role: "patient",
   };
 
   const weekAdherence = Array.from({ length: 7 }, (_, index) => {

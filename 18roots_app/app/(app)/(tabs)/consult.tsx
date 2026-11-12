@@ -10,11 +10,13 @@ import { Button, Card, Chip } from "@/components/ui";
 import { ConsultationCard } from "@/features/consult/ConsultationCard";
 import { useT } from "@/i18n";
 import { colors, fonts, spacing, type } from "@/theme";
+import { useAuth } from "@/store/auth";
 
 export default function ConsultScreen() {
   const t = useT();
   const [scope, setScope] = useState<"upcoming" | "past">("upcoming");
   const consultations = useConsultations(scope);
+  const isDoctor = useAuth((state) => state.user?.role === "doctor");
 
   return (
     <Screen
@@ -23,7 +25,7 @@ export default function ConsultScreen() {
       onRefresh={() => consultations.refetch()}
       refreshing={consultations.isRefetching}
     >
-      <Card tone="rose" style={styles.book}>
+      {!isDoctor ? <Card tone="rose" style={styles.book}>
         <View style={{ flex: 1, paddingRight: spacing.xl }}>
           <Text style={styles.bookTitle}>{t("consult.bookTitle")}</Text>
           <Text style={type.body}>{t("consult.bookBody")}</Text>
@@ -38,7 +40,7 @@ export default function ConsultScreen() {
         <View style={styles.sprig} pointerEvents="none">
           <LeafSprig size={70} opacity={0.8} />
         </View>
-      </Card>
+      </Card> : <Text style={[type.body, styles.doctorNote]}>Your assigned consultations</Text>}
 
       <View style={styles.tabs}>
         <Chip label={t("consult.upcoming")} selected={scope === "upcoming"} onPress={() => setScope("upcoming")} />
@@ -71,4 +73,5 @@ const styles = StyleSheet.create({
   sprig: { position: "absolute", right: 0, bottom: -4 },
   tabs: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xl, marginBottom: spacing.lg },
   note: { textAlign: "center", marginTop: spacing.sm },
+  doctorNote: { marginTop: spacing.md, marginBottom: spacing.md, color: colors.muted },
 });

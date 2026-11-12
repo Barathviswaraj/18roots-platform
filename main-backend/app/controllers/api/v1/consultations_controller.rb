@@ -3,7 +3,11 @@ module Api
     class ConsultationsController < BaseController
       def index
         now = Time.current
-        scope = current_user.appointments.includes(:doctor, :care_notes)
+        scope = if current_user.role_doctor?
+                  current_user.doctor.appointments.includes(:doctor, :care_notes)
+                else
+                  current_user.appointments.includes(:doctor, :care_notes)
+                end
         items = if params[:scope] == "past"
                   scope.where(status: %w[completed missed cancelled]).or(scope.where(status: "confirmed").where(ends_at: ..now))
                        .order(starts_at: :desc).limit(50)
@@ -28,7 +32,8 @@ module Api
       private
 
       def appointment
-        @appointment ||= current_user.appointments.visible.includes(:doctor, :care_notes).find(params[:id])
+        appointments = current_user.role_doctor? ? current_user.doctor.appointments : current_user.appointments
+        @appointment ||= appointments.visible.includes(:doctor, :care_notes).find(params[:id])
       end
     end
   end

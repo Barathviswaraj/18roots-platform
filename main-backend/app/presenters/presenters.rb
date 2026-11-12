@@ -14,7 +14,8 @@ module Presenters
       dateOfBirth: user.date_of_birth&.strftime("%d/%m/%Y"),
       city: user.city.presence,
       avatarUrl: user.avatar_url,
-      programName: user.active_care_plan&.program_name
+      programName: user.active_care_plan&.program_name,
+      role: user.role
     }
   end
 

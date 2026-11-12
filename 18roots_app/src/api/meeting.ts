@@ -30,7 +30,8 @@ async function joinLive(consultation: Consultation): Promise<CallCredentials> {
   const headers = { Authorization: `Bearer ${useAuth.getState().tokens?.accessToken ?? ""}` };
   const path = `/api/v1/meetings/${consultation.meetingId}`;
   await meetingApi.post(`${path}/prepare`, null, { headers });
-  const { data } = await meetingApi.post(`${path}/join-token`, { role: "patient" }, { headers });
+  const role = useAuth.getState().user?.role === "doctor" ? "doctor" : "patient";
+  const { data } = await meetingApi.post(`${path}/join-token`, { role }, { headers });
   const credentials = joinTokenSchema.parse(data);
   return {
     token: credentials.token,
