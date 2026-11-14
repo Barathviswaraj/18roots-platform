@@ -138,7 +138,7 @@ The specs save real responses to `spec/contract/fixtures`. When `18roots_app` si
 
 ## Not done yet
 
-- **SMS:** `SMS_PROVIDER=log` only. Pick and integrate a provider, for example MSG91 or Twilio, with DLT registration for India.
+- **SMS:** `SMS_PROVIDER=log` logs codes for development. Set `SMS_PROVIDER=twilio` with `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `TWILIO_PHONE_NUMBER` to send real OTP SMS. Keep credentials in the deployment environment, never in the app or repository.
 - **Payment service (Phase 2b):** the client and webhook here follow the contract in `app/services/payments/payment_service_client.rb`.
 - **Doctor and admin portals:** these will add doctor logins, editing care plans and orders, and refund review for `needs_review` appointments.
 - **Push notifications** from the server. Reminders are local on the phone today.
