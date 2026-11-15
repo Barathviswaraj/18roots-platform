@@ -57,8 +57,11 @@ export default function CallScreen() {
         credentials={credentials}
         doctorName={consultation.data.doctor.name}
         onLeave={() => setPhase("left")}
-        onFailed={() => {
-          setFailure(t("call.failed"));
+        onFailed={(message) => {
+          // LiveKit already provides a useful connection error (for example,
+          // an invalid token or a blocked camera). Keep it visible so people
+          // can act on the real problem instead of a generic retry message.
+          setFailure(message || t("call.failed"));
           setPhase("failed");
         }}
       />
