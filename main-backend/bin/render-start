@@ -8,5 +8,6 @@ bin/rails db:prepare
 if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
   bin/rails db:seed
 fi
+bin/rails meetings:repair_missing_rooms
 bundle exec sidekiq -c 2 -C config/sidekiq.yml &
 exec bundle exec puma -C config/puma.rb
