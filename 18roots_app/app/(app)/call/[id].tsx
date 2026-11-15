@@ -46,7 +46,13 @@ export default function CallScreen() {
       setPhase("in_call");
     } catch (error) {
       const apiError = toApiError(error);
-      setFailure(apiError.code === "call_unavailable" ? t("call.demoUnavailable") : t("call.failed"));
+      // Keep the meeting-service response visible. This tells the person
+      // whether room preparation, token issuing, or LiveKit itself failed.
+      setFailure(
+        apiError.code === "call_unavailable"
+          ? t("call.demoUnavailable")
+          : apiError.message || t("call.failed"),
+      );
       setPhase("failed");
     }
   };
