@@ -33,5 +33,5 @@ RUN groupadd --system rails \
     && chown -R rails:rails /app /usr/local/bundle
 USER rails:rails
 EXPOSE 3000
-CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
+CMD ["sh", "bin/render-start"]
 
